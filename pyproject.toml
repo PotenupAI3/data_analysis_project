@@ -1,0 +1,28 @@
+[project]
+name = "data-analysis-project"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "emoji>=2.15.0",
+    "folium>=0.20.0",
+    "jpype1>=1.6.0",
+    "jupyter>=1.1.1",
+    "kiwipiepy>=0.22.2",
+    "konlpy>=0.6.0",
+    "koreanize-matplotlib>=0.1.1",
+    "matplotlib>=3.10.8",
+    "mlxtend>=0.24.0",
+    "nbstripout>=0.9.0",
+    "networkx>=3.6.1",
+    "numpy>=2.4.1",
+    "pandas>=2.3.3",
+    "pillow>=12.1.0",
+    "pyldavis>=3.4.1",
+    "python-dotenv>=1.2.1",
+    "requests>=2.32.5",
+    "scikit-learn>=1.8.0",
+    "seaborn>=0.13.2",
+    "wordcloud>=1.9.6",
+]
