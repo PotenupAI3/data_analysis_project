@@ -1,0 +1,4 @@
+[nbstripout]
+strip_output = true
+strip_metadata = true
+strip_cell_ids = true
