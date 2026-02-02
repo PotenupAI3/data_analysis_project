@@ -12,8 +12,4 @@
       "notebook.source.fixAll": "explicit",
       "notebook.source.organizeImports": "explicit"
     },
-    "python.envFile": "${workspaceFolder}/.env",
-    "python.analysis.extraPaths": [
-        "./src"
-    ],
 }
