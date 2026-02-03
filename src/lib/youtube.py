@@ -7,17 +7,13 @@ import requests
 YOUTUBE_COMMENTTHREADS_URL = "https://www.googleapis.com/youtube/v3/commentThreads"
 YOUTUBE_COMMENTS_URL = "https://www.googleapis.com/youtube/v3/comments"
 
-__all__ = [
-    "collect_all_comments",
-    "_fetch_all_replies",
-    "YOUTUBE_COMMENTTHREADS_URL",
-    "YOUTUBE_COMMENTS_URL",
-]
-
+__all__ = ["collect_all_comments"]
 
 # 사용 예시:
 # rows, texts = collect_all_comments("VIDEO_ID_HERE", include_replies=True)
 # print(len(rows), len(texts))
+
+
 def collect_all_comments(
     video_id, api_key=None, include_replies=True, sleep=0.05, max_total=None
 ):
@@ -38,7 +34,7 @@ def collect_all_comments(
     page_token = None
     page = 0
 
-    while page_token:
+    while True:
         page += 1
         print(f"[threads] page {page} 수집 중...")
 
@@ -81,7 +77,7 @@ def collect_all_comments(
             if include_replies:
                 reply_count = thread_sn.get("totalReplyCount", 0)
                 if reply_count and top_comment_id:
-                    reply_rows = _fetch_all_replies(
+                    reply_rows = fetch_all_replies(
                         parent_id=top_comment_id,
                         api_key=api_key,
                         session=session,
@@ -95,6 +91,8 @@ def collect_all_comments(
                 return rows, texts
 
         page_token = data.get("nextPageToken")
+        if not page_token:
+            break
 
         if sleep:
             time.sleep(sleep)
@@ -105,52 +103,10 @@ def collect_all_comments(
     return rows, texts
 
 
-def _fetch_all_replies(parent_id, api_key, session=None, sleep=0.05):
-    """
-    특정 최상위 댓글(parent_id)의 대댓글을 comments.list로 전부 가져옴 (페이지네이션)
-    """
-    all_rows = []
-    page_token = None
-    page = 0
-
-    while page_token:
-        page += 1
-        params = {
-            "part": "snippet",
-            "parentId": parent_id,
-            "maxResults": 100,
-            "textFormat": "plainText",
-            "key": api_key,
-            "pageToken": page_token,
-        }
-
-        data = _request_json(YOUTUBE_COMMENTS_URL, params, session=session)
-
-        items = data.get("items", [])
-        for it in items:
-            sn = it.get("snippet", {})
-            all_rows.append(
-                {
-                    "comment_id": it.get("id"),
-                    "parent_id": sn.get("parentId"),
-                    "author": sn.get("authorDisplayName"),
-                    "published_at": sn.get("publishedAt"),
-                    "like_count": sn.get("likeCount"),
-                    "text": sn.get("textDisplay") or sn.get("textOriginal"),
-                }
-            )
-
-        page_token = data.get("nextPageToken")
-
-        if sleep:
-            time.sleep(sleep)
-
-    return all_rows
-
-
 def _request_json(url, params, session=None, max_retries=5, timeout=20):
-    # 간단한 재시도 + 지수 백오프(429/5xx 대응)
-
+    """
+    간단한 재시도 + 지수 백오프(429/5xx 대응)
+    """
     sess = session or requests.Session()
 
     # pageToken이 None이면 아예 params에서 제거 (가끔 더 안전)
@@ -179,3 +135,48 @@ def _request_json(url, params, session=None, max_retries=5, timeout=20):
         raise RuntimeError(f"Request failed: {resp.status_code} / {err}")
 
     raise RuntimeError(f"Max retries exceeded for {url}")
+
+
+def fetch_all_replies(parent_id, api_key, session=None, sleep=0.05):
+    """
+    특정 최상위 댓글(parent_id)의 대댓글을 comments.list로 전부 가져옴 (페이지네이션)
+    """
+    all_rows = []
+    page_token = None
+    page = 0
+
+    while True:
+        page += 1
+        params = {
+            "part": "snippet",
+            "parentId": parent_id,
+            "maxResults": 100,
+            "textFormat": "plainText",
+            "key": api_key,
+            "pageToken": page_token,
+        }
+
+        data = _request_json(YOUTUBE_COMMENTS_URL, params, session=session)
+
+        items = data.get("items", [])
+        for it in items:
+            sn = it.get("snippet", {})
+            all_rows.append(
+                {
+                    "comment_id": it.get("id"),
+                    "parent_id": sn.get("parentId"),
+                    "author": sn.get("authorDisplayName"),
+                    "published_at": sn.get("publishedAt"),
+                    "like_count": sn.get("likeCount"),
+                    "text": sn.get("textDisplay") or sn.get("textOriginal"),
+                }
+            )
+
+        page_token = data.get("nextPageToken")
+        if not page_token:
+            break
+
+        if sleep:
+            time.sleep(sleep)
+
+    return all_rows
