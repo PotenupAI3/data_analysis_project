@@ -18,23 +18,35 @@ def word_cloud(data_list, stopwords, mask_img_path):
 
     font_path = "C:/Windows/Fonts/malgun.ttf"
 
-    image = Image.open(mask_img_path)
-    mask_img = np.array(image)
+    img = Image.open(mask_img_path).convert("L")
+    arr = np.array(img)
+
+    thr = 230  # 200~245 사이에서 조절
+    mask_img = np.where(arr < thr, 0, 255).astype(np.uint8)
 
     wc = WordCloud(
         font_path=font_path,
-        background_color="black",
+        # background_color="#0B3D91",
+        background_color="#0A1F44",
+        # colormap="plasma",
+        # background_color="#0B3D91",
         mask=mask_img,  # 전처리된 마스크 적용
         width=800,
         height=800,
-        # contour_width=2,       # 테두리 선을 넣고 싶다면 추가
-        # contour_color='black'
+        # colormap="YlGn",
+        contour_width=3,  # 테두리 선을 넣고 싶다면 추가
+        contour_color="#E3F2FD",
+        # contour_color="#90CAF9",
+        max_font_size=200,
+        min_font_size=8,
     )
 
     print("워드클라우드 생성 중...")
     img = wc.generate_from_frequencies(count)
 
     plt.figure(figsize=(8, 8))
+    # plt.imshow(mask_img, cmap="gray")  # 육지 영역
+    # plt.imshow(wc, alpha=1)
     plt.imshow(img, interpolation="bilinear")  # interpolation은 bilinear 권장
     plt.axis("off")
     plt.show()
