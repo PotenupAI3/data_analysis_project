@@ -9,6 +9,13 @@ from PIL import Image
 from wordcloud import WordCloud
 
 
+def color_func(word, *args, **kwargs):
+    if word in ["전주", "완주", "통합"]:
+        return "#FF5501"
+    else:
+        return "#F8F8F8"
+
+
 def word_cloud(data_list, stopwords, mask_img_path):
     okt = Okt()
     all_comments = " ".join(data_list)
@@ -26,8 +33,9 @@ def word_cloud(data_list, stopwords, mask_img_path):
 
     wc = WordCloud(
         font_path=font_path,
+        background_color="black",
         # background_color="#0B3D91",
-        background_color="#0A1F44",
+        # background_color="#0A1F44",
         # colormap="plasma",
         # background_color="#0B3D91",
         mask=mask_img,  # 전처리된 마스크 적용
@@ -39,6 +47,7 @@ def word_cloud(data_list, stopwords, mask_img_path):
         # contour_color="#90CAF9",
         max_font_size=200,
         min_font_size=8,
+        color_func=color_func,
     )
 
     print("워드클라우드 생성 중...")
